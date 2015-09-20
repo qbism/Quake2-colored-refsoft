@@ -80,16 +80,6 @@ void R_AliasLerpFrames(dmdl_t *paliashdr, float backlerp);
 R_AliasCheckBBox
 ================
 */
-typedef struct {
-	int	index0;
-	int	index1;
-} aedge_t;
-
-static aedge_t	aedges[12] = {
-	{ 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 },
-	{ 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 },
-	{ 0, 5 }, { 1, 4 }, { 2, 7 }, { 3, 6 }
-};
 
 #define BBOX_TRIVIAL_ACCEPT 0
 #define BBOX_MUST_CLIP_XY   1
@@ -1078,7 +1068,7 @@ R_AliasDrawModel
 void R_AliasDrawModel(void)
 {
 	extern void(*d_pdrawspans)(void *);
-	extern void R_PolysetDrawSpans8_Opaque(void *);
+	extern void R_PolysetDrawSpans8_Opaque_Coloured(void *);
 	extern void R_PolysetDrawSpans8_33(void *);
 	extern void R_PolysetDrawSpans8_66(void *);
 	extern void R_PolysetDrawSpansConstant8_33(void *);
@@ -1193,7 +1183,7 @@ void R_AliasDrawModel(void)
 	else if (currententity->flags & RF_TRANSLUCENT)
 	{
 		if (currententity->alpha > 0.66)
-			d_pdrawspans = R_PolysetDrawSpans8_Opaque;
+			d_pdrawspans = R_PolysetDrawSpans8_Opaque_Coloured;
 		else if (currententity->alpha > 0.33)
 			d_pdrawspans = R_PolysetDrawSpans8_66;
 		else
@@ -1201,7 +1191,7 @@ void R_AliasDrawModel(void)
 	}
 	else
 	{
-		d_pdrawspans = R_PolysetDrawSpans8_Opaque;
+		d_pdrawspans = R_PolysetDrawSpans8_Opaque_Coloured;
 	}
 
 	/*

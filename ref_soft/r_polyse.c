@@ -131,7 +131,8 @@ void(*d_pdrawspans)(spanpackage_t *pspanpackage);
 
 void R_PolysetDrawSpans8_33(spanpackage_t *pspanpackage);
 void R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage);
-void R_PolysetDrawSpans8_Opaque(spanpackage_t *pspanpackage);
+//void R_PolysetDrawSpans8_Opaque(spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_Opaque_Coloured(spanpackage_t *pspanpackage);
 
 void R_PolysetDrawThreshSpans8(spanpackage_t *pspanpackage);
 void R_PolysetCalcGradients(int skinwidth);
@@ -449,7 +450,8 @@ void R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 R_PolysetCalcGradients
 ================
 */
-#if 0 //qb: doesn't work for colored light ATM. was: id386 && !defined __linux__ && !defined __FreeBSD__
+//qb: from Frank Sapone
+#if id386 && !defined __linux__ && !defined __FreeBSD__
 void R_PolysetCalcGradients(int skinwidth)
 {
 	static float xstepdenominv, ystepdenominv, t0, t1;
@@ -546,6 +548,137 @@ void R_PolysetCalcGradients(int skinwidth)
 	__asm fxch  st(1); r_lstepx | r_lstepy
 	__asm fistp dword ptr[r_lstepx]
 		__asm fistp dword ptr[r_lstepy]
+		/* FS: Start */
+		/*
+		t0 = r_p0[6] - r_p2[6];
+		t1 = r_p1[6] - r_p2[6];
+		r_lrstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+		r_lrstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+		*/
+		__asm fild  dword ptr d_xdenom; d_xdenom
+	__asm fdivr one; 1 / d_xdenom
+	__asm fst   xstepdenominv;
+	__asm fmul  negative_one; -(1 / d_xdenom)
+
+	__asm mov   eax, dword ptr[r_p0 + 24] // 6
+		__asm mov   ebx, dword ptr[r_p1 + 24]
+		__asm sub   eax, dword ptr[r_p2 + 24]
+		__asm sub   ebx, dword ptr[r_p2 + 24]
+
+		__asm fstp  ystepdenominv; (empty)
+
+	__asm mov   t0_int, eax
+	__asm mov   t1_int, ebx
+	__asm fild  t0_int; t0
+	__asm fild  t1_int; t1 | t0
+	__asm fxch  st(1); t0 | t1
+	__asm fstp  t0; t1
+	__asm fst   t1; t1
+	__asm fmul  p01_minus_p21; t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p01_minus_p21
+	__asm fmul  p11_minus_p21; t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t1; t1 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p00_minus_p20; t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p10_minus_p20; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fxch  st(2); t0 * p11_minus_p21 | t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21
+	__asm fsubp st(3), st; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fsubrp st(1), st; t1 * p00_minus_p20 - t0 * p10_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fxch  st(1); t1 * p01_minus_p21 - t0 * p11_minus_p21 | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fmul  xstepdenominv; r_lstepx | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fxch  st(1)
+	__asm fmul  ystepdenominv; r_lstepy | r_lstepx
+	__asm fxch  st(1); r_lstepx | r_lstepy
+	__asm fistp dword ptr[r_lrstepx]
+		__asm fistp dword ptr[r_lrstepy]
+
+		/* FS: Start */
+		/*
+		t0 = r_p0[7] - r_p2[7];
+		t1 = r_p1[7] - r_p2[7];
+		r_lgstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+		r_lgstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+		*/
+		__asm fild  dword ptr d_xdenom; d_xdenom
+	__asm fdivr one; 1 / d_xdenom
+	__asm fst   xstepdenominv;
+	__asm fmul  negative_one; -(1 / d_xdenom)
+
+	__asm mov   eax, dword ptr[r_p0 + 28] // 7
+		__asm mov   ebx, dword ptr[r_p1 + 28]
+		__asm sub   eax, dword ptr[r_p2 + 28]
+		__asm sub   ebx, dword ptr[r_p2 + 28]
+
+		__asm fstp  ystepdenominv; (empty)
+
+	__asm mov   t0_int, eax
+	__asm mov   t1_int, ebx
+	__asm fild  t0_int; t0
+	__asm fild  t1_int; t1 | t0
+	__asm fxch  st(1); t0 | t1
+	__asm fstp  t0; t1
+	__asm fst   t1; t1
+	__asm fmul  p01_minus_p21; t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p01_minus_p21
+	__asm fmul  p11_minus_p21; t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t1; t1 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p00_minus_p20; t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p10_minus_p20; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fxch  st(2); t0 * p11_minus_p21 | t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21
+	__asm fsubp st(3), st; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fsubrp st(1), st; t1 * p00_minus_p20 - t0 * p10_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fxch  st(1); t1 * p01_minus_p21 - t0 * p11_minus_p21 | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fmul  xstepdenominv; r_lstepx | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fxch  st(1)
+	__asm fmul  ystepdenominv; r_lstepy | r_lstepx
+	__asm fxch  st(1); r_lstepx | r_lstepy
+	__asm fistp dword ptr[r_lgstepx]
+		__asm fistp dword ptr[r_lgstepy]
+
+		/* FS: Start */
+		/*
+		t0 = r_p0[8] - r_p2[8];
+		t1 = r_p1[8] - r_p2[8];
+		r_lbstepy = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+		r_lbstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+		*/
+		__asm fild  dword ptr d_xdenom; d_xdenom
+	__asm fdivr one; 1 / d_xdenom
+	__asm fst   xstepdenominv;
+	__asm fmul  negative_one; -(1 / d_xdenom)
+
+	__asm mov   eax, dword ptr[r_p0 + 32] // 8
+		__asm mov   ebx, dword ptr[r_p1 + 32]
+		__asm sub   eax, dword ptr[r_p2 + 32]
+		__asm sub   ebx, dword ptr[r_p2 + 32]
+
+		__asm fstp  ystepdenominv; (empty)
+
+	__asm mov   t0_int, eax
+	__asm mov   t1_int, ebx
+	__asm fild  t0_int; t0
+	__asm fild  t1_int; t1 | t0
+	__asm fxch  st(1); t0 | t1
+	__asm fstp  t0; t1
+	__asm fst   t1; t1
+	__asm fmul  p01_minus_p21; t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p01_minus_p21
+	__asm fmul  p11_minus_p21; t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t1; t1 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p00_minus_p20; t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fld   t0; t0 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fmul  p10_minus_p20; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t0 * p11_minus_p21 | t1 * p01_minus_p21
+	__asm fxch  st(2); t0 * p11_minus_p21 | t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21
+	__asm fsubp st(3), st; t0 * p10_minus_p20 | t1 * p00_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fsubrp st(1), st; t1 * p00_minus_p20 - t0 * p10_minus_p20 | t1 * p01_minus_p21 - t0 * p11_minus_p21
+	__asm fxch  st(1); t1 * p01_minus_p21 - t0 * p11_minus_p21 | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fmul  xstepdenominv; r_lstepx | t1 * p00_minus_p20 - t0 * p10_minus_p20
+	__asm fxch  st(1)
+	__asm fmul  ystepdenominv; r_lstepy | r_lstepx
+	__asm fxch  st(1); r_lstepx | r_lstepy
+	__asm fistp dword ptr[r_lbstepx]
+		__asm fistp dword ptr[r_lbstepy]
 
 		/*
 		** put FPU back into extended precision chop mode
@@ -678,7 +811,7 @@ void R_PolysetCalcGradients(int skinwidth)
 		#endif
 		*/
 		__asm mov eax, d_pdrawspans
-	__asm cmp eax, offset R_PolysetDrawSpans8_Opaque
+	__asm cmp eax, offset R_PolysetDrawSpans8_Opaque_Coloured
 	__asm mov eax, r_sstepx
 	__asm mov ebx, r_tstepx
 	__asm jne translucent
@@ -727,44 +860,44 @@ void R_PolysetCalcGradients(int skinwidth)
 	// very visible, overflow is very unlikely, because of ambient lighting
 	t0 = r_p0[4] - r_p2[4];
 	t1 = r_p1[4] - r_p2[4];
-	r_lstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_lstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_lstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	//qb: use ceil
 	t0 = r_p0[6] - r_p2[6];
 	t1 = r_p1[6] - r_p2[6];
-	r_lrstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lrstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_lrstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_lrstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	t0 = r_p0[7] - r_p2[7];
 	t1 = r_p1[7] - r_p2[7];
-	r_lgstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lgstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_lgstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_lgstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	t0 = r_p0[8] - r_p2[8];
 	t1 = r_p1[8] - r_p2[8];
-	r_lbstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lbstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_lbstepx = (int)ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_lbstepy = (int)ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 
 	t0 = r_p0[2] - r_p2[2];
 	t1 = r_p1[2] - r_p2[2];
-	r_sstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_sstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_sstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_sstepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	t0 = r_p0[3] - r_p2[3];
 	t1 = r_p1[3] - r_p2[3];
-	r_tstepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_tstepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_tstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_tstepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	t0 = r_p0[5] - r_p2[5];
 	t1 = r_p1[5] - r_p2[5];
-	r_zistepx = ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_zistepy = ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	r_zistepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+	r_zistepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
 	//#if	id386ALIAS
 #if id386
-	if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+	if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 	{
 		a_sstepxfrac = r_sstepx << 16;
 		a_tstepxfrac = r_tstepx << 16;
@@ -780,7 +913,7 @@ void R_PolysetCalcGradients(int skinwidth)
 
 	a_ststepxwhole = skinwidth * (r_tstepx >> 16) + (r_sstepx >> 16);
 }
-#endif
+#endif /* !id386 */
 
 
 //qb: staticized
@@ -1062,7 +1195,7 @@ void R_PolysetDrawSpansConstant8_66(spanpackage_t *pspanpackage)
 #if 1 //qb: no asm colored light support was- !id386
 // leilei - colored lighting
 
-void R_PolysetDrawSpans8_Opaque(spanpackage_t *pspanpackage)
+void R_PolysetDrawSpans8_Opaque_Coloured(spanpackage_t *pspanpackage)
 {
 
 	do
@@ -1219,7 +1352,7 @@ void R_RasterizeAliasPolySmooth(void)
 		(plefttop[3] >> 16) * r_affinetridesc.skinwidth;
 	//#if	id386ALIAS
 #if id386
-	if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+	if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 	{
 		d_sfrac = (plefttop[2] & 0xFFFF) << 16;
 		d_tfrac = (plefttop[3] & 0xFFFF) << 16;
@@ -1271,7 +1404,7 @@ void R_RasterizeAliasPolySmooth(void)
 
 		//#if	id386ALIAS
 #if id386
-		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 		{
 			d_pzbasestep = (d_zwidth + ubasestep) << 1;
 			d_pzextrastep = d_pzbasestep + 2;
@@ -1315,7 +1448,7 @@ void R_RasterizeAliasPolySmooth(void)
 			r_affinetridesc.skinwidth;
 		//#if	id386ALIAS
 #if id386
-		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 		{
 			d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) << 16;
 			d_tfracbasestep = (r_tstepy + r_tstepx * ubasestep) << 16;
@@ -1342,7 +1475,7 @@ void R_RasterizeAliasPolySmooth(void)
 			r_affinetridesc.skinwidth;
 		//#if	id386ALIAS
 #if id386
-		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 		{
 			d_sfracextrastep = (r_sstepy + r_sstepx*d_countextrastep) << 16;
 			d_tfracextrastep = (r_tstepy + r_tstepx*d_countextrastep) << 16;
@@ -1363,7 +1496,7 @@ void R_RasterizeAliasPolySmooth(void)
 		d_lightextrastepb = d_lightbasestepb + working_lbstepx;
 
 #if id386
-		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+		if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 		{
 			R_PolysetScanLeftEdge(initialleftheight);
 		}
@@ -1435,7 +1568,7 @@ void R_RasterizeAliasPolySmooth(void)
 
 			//#if	id386ALIAS
 #if id386
-			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 			{
 				d_pzbasestep = (d_zwidth + ubasestep) << 1;
 				d_pzextrastep = d_pzbasestep + 2;
@@ -1469,7 +1602,7 @@ void R_RasterizeAliasPolySmooth(void)
 				r_affinetridesc.skinwidth;
 			//#if	id386ALIAS
 #if id386
-			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 			{
 				d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) << 16;
 				d_tfracbasestep = (r_tstepy + r_tstepx * ubasestep) << 16;
@@ -1496,7 +1629,7 @@ void R_RasterizeAliasPolySmooth(void)
 				r_affinetridesc.skinwidth;
 			//#if	id386ALIAS
 #if id386
-			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 			{
 				d_sfracextrastep = ((r_sstepy + r_sstepx*d_countextrastep) & 0xFFFF) << 16;
 				d_tfracextrastep = ((r_tstepy + r_tstepx*d_countextrastep) & 0xFFFF) << 16;
@@ -1517,7 +1650,7 @@ void R_RasterizeAliasPolySmooth(void)
 			d_lightextrastepb = d_lightbasestepb + working_lbstepx;
 
 #if id386
-			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque)
+			if (d_pdrawspans == R_PolysetDrawSpans8_Opaque_Coloured)
 			{
 				R_PolysetScanLeftEdge(height);
 			}

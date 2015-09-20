@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define id386	0
 #define	COLMODEL //qb: tnq2
-#define REF_VERSION     "KolorSoft"  //qb: LOL
+#define REF_VERSION     "KolorSoft 1.1"  //qb: LOL
 
 // up / down
 #define PITCH   0
