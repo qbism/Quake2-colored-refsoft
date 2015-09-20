@@ -1,0 +1,28 @@
+Quake II v3.24 Unofficial Patch (.exe version 3.2.4.2)
+By Knightmare (knightmare66@yahoo.com)
+
+This is a simple, no-frills patch that fixes bugs (including the nVidia 191.x driver
+crash) and adds only meager tweaks aside from Ogg Vorbis support.  Intended for
+Quake2 purists who have been using the woefully out of date version 3.20, it is not
+intended to add new features or be an engine mod in its own right.
+
+It is based on the 3.21 source released by John Carmack in December 2001, with code
+by myself, Berserk, CDawg, Pat Aftermoon, Anthony Jacques, David M. Pochron, Dopefish, GuyP, Jitspoe,
+MH, MrG, NeVo, Skuller, Riot, R1ch, Psychospaz, Pooy, Sul, and anybody else I forgot.
+
+As this release is not made or supported by id Software or Activision, please don't
+ask them for support with this.
+
+You should back up the quake2.exe, ref_gl.dll, and ref_soft.dll files in your Quake2 folder
+and the gamex86.dll files in your Quake2/baseq2, Quake2/ctf, Quake2/xatrix, and Quake2/rogue
+folders before installing this.
+This can be done simply by making a subfolder called "backup" or "old" and moving the
+above files there.
+
+To install, just extract this archive into your Quake2 folder.  
+
+To hear Ogg Vorbis tracks ingame, rip the Q2 CD's audio tracks (2-11) to track02-track11.ogg
+and put them in baseq2/music.  For the mission pack audio tracks, rip the Ground Zero CD's
+audio tracks (2-11) to track12-track21.ogg.  Don't bother ripping the tracks from the
+Reckoning CD, as they're a mix of the tracks on the Q2 and Ground Zero CDs.  Everything else
+will be taken care of internally.

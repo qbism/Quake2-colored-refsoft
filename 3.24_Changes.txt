@@ -1,0 +1,113 @@
+3.24 Changes:
+- Added Ogg Vorbis support.
+- Added support for 44 and 48 KHz sound.
+- Added optimizations to world rendering in multitexture mode.
+- Added refresh rate control with r_displayrefresh cvar.
+- Added refresh rate option to video menu.
+- Added writeconfig command to save config changes without exiting.
+- Added pak loading security fixes from Q2Pro.
+- Added SURF_ALPHATEST (0x02000000) surface flag from KMQuake2.
+- Added optimizations to pak file loading.
+- Now handles textures as GL_RGBA and lightaps as GL_BGRA on modern OpenGL drivers.
+- Added cvar gl_newtextureformat.  Set to 0 to force old texture/lightmap format in case of
+  compatibility problems.
+- Fixed texture paths with backslashes('\') not loading from inside pak files.
+- Fixed graphical corruption that can occur when drop-to-console errors occur while loading a map.
+- Fixed crash when conchars.pcx is not found.
+- Fixed model culling with pitch and roll.  Added gl_showbbox cvar to show fixed culling bbox.
+- Improved handling of OpenGL extension string.
+- Screenshots now go up to 999.
+- Added screenshot_silent command for silent screenshots.
+- Added m_noaccel cvar to disable mouse acceleration.
+- Added mouse acceleration option to options menu.
+- Restored "disable alt-tab" option to menu.
+- Now disables vsync while a map is loading or the video system is restarting, resulting in faster loads.
+- Added an option to the video menu to enable or disable non-power-of-2 mipmapped textures.  Some video
+  drivers don't properly support NPOT textures and will screw up the mipmaps for these textures.
+- Added custom resolution option to video menu.
+- Added 2560x1080 video mode.
+- Changed default video mode to 3 (640x480) for both OpenGL and software renderers.  Removed modes below
+  640x480 from the video menu.
+- Added additional server fixes from R1Q2.
+
+3.23 Changes:
+- Fixed buffer overflow crash induced by nVidia 191.x drivers.
+- OpenGL renderer no longer prints GL_EXTENSIONS string to console on startup.
+  This can still be shown with the gl_strings command.
+- Increased MAX_OSPATH to 256 characters.  This should improve compatibility when
+  Quake2 is installed under C:\Program Files.
+- Enlarged s_blocklights array in the OpenGL renderer.
+  This allows maps compiled with large -chop sizes to load.
+- Increased sky draw distance in the OpenGL renderer to 4600, this can be changed with
+  the r_skydistance cvar.
+- Added stencil buffering to shadows.
+- Added support for non-power-of-two textures.  This can be disabled by setting the cvar
+  gl_arb_texturenonpoweroftwo to 0.
+- If gl_arb_texturenonpoweroftwo is supported and enabled, cinematics play without loss
+  of quality (no column-dropping).
+- Added pillarboxing/letterboxing of cinematics on non-4:3 aspect ratios.
+- Added support for anisotropic filtering.
+- Texture mode and anisotropic filtering can now be changed without a vid_restart.
+- Added hardware gamma control.
+- Dynamic light cutoff is now adjustable with the cvar r_lightcutoff.  It defaults to 64.
+  Lower values will give smoother light, but with a performance penalty.
+- Trans surfaces can now move and have animated textures.
+- Fixed gl_showtris not working in multitexture mode.
+- Fixed dynamic lights not showing up on moving bmodels.
+- The console can now be scrolled with the mouse wheel.
+- Added wildcard support to the cvarlist command.
+- Added improved console command completion.
+- Added cvar toggle command.
+- Index overflows no longer bomb the game out; instead they cause a warning telling which
+  index overflowed. 
+- Enlarged command buffer from 8KB to 32KB.  This allows larger .cfg files to be used.
+- Now loads pak files from pak0.pak to pak99.pak.
+- Added command line option to skip scanning for the game CD to speed up startup time:
+  "+set noscanforcd 1"
+- Fixed game CD scanning code to work with the official mission packs.
+- Fixed player sliding along steep sloped surfaces that meet floors.
+- Fixed looped sounds not playing for bmodels without origin brushes.
+- Fixed non-dedicated server bombing out out with a WSAECONNRESET error when a client
+  crashes or quits without disconnecting first.
+- Fixed bomb out when pinging servers with the network cable disconnected.
+- Fixed vulnerability to too many clients DoS.
+- Fixed bug of not properly disconnected clients potentially being overwritten.
+- Fixed hogging of CPU cycles between client frames.  The old behavior can be reverted to
+  by setting cl_sleep to 0.
+- Fixed rcon_password security issue.
+- Various security fixes adapted from R1Q2.
+- Client can now autodownload sprites.
+- Now draws first-person gun model at up to 160 fov.
+- Fixed crash on exiting biggun level.
+- Allows player models in the baseq2/players folder still to be found when there are
+  player models in the current mod's gamedir.
+- No longer creates an autosave when starting a level in deathmatch.
+- Increased max savegames to 20.
+- Added custom resolution support.  Use r_customwidth and r_customheight to set the custom
+  resolution, and set gl_mode or sw_mode to -1 to enable.
+- Added new video modes, including widescreen ones.
+- Automatically scales FOV for wide aspect ratios.  This can be disabled by setting
+  the cvar cl_widescreen_fov to 0.
+- Now disables multitexture support by default on Intel graphics.  To enable,
+  set gl_intel_allow_multitexture to 1 and restart the renderer (vid_restart).
+- Video menu no longer applies changes when pressing ESC, instead the
+  "apply changes" action is used, replacing the "cancel changes" action.
+- Added missing menu banners (start server, player setup, configure keys).
+- Fixed player model being reset to male/grunt after level changes in single player.
+- Fixed infinite loop hang with railgun firing through entities with overlapping bounding
+  boxes (the eastertank railgun crash).
+- Fixed no player models being found when there are loose files in the baseq2/players folder.
+- Fixed credits menu so it scrolls past the top of the screen, and then
+  starts over once the last line has passed the top.
+- Added weapon model to display in player setup menu.
+
+12-22-2001, for source release under GPL licensing:
+- Tweaked linux/Makefile for easier build
+  added linux/README-3.21-RELEASE
+
+3.21 Changes:
+- Support for GL_ARB_multitexture added.  This supports the new multitexture
+  extensions and deprecates GL_SGIS_multitexture.
+- Linux OpenGL X11 handling completely rewritten.  Support for XF86DGA Mouse
+  and fullscreen resolution support added.  Please see the README file for
+  Linux about the new features of this handling.
